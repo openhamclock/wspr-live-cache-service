@@ -12,6 +12,7 @@ from .db import connect, query_spots, stats
 app = FastAPI(title='Open HamClock WSPR Live Cache', version='1.0.0')
 _conn = connect(settings.db_path)
 _response_cache: dict[str, tuple[float, str, str]] = {}
+_RESPONSE_CACHE_MAX_ENTRIES = 2000
 
 
 def clamp_maxage(maxage: Optional[int]) -> int:
@@ -36,7 +37,18 @@ def get_cached(key: str) -> Optional[tuple[str, str]]:
 
 
 def put_cached(key: str, body: str, media_type: str) -> None:
-    _response_cache[key] = (time.time() + settings.response_cache_seconds, body, media_type)
+    now = time.time()
+    # Drop expired entries so keys for one-off queries don't accumulate forever.
+    expired = [k for k, (exp, _, _) in _response_cache.items() if exp <= now]
+    for k in expired:
+        _response_cache.pop(k, None)
+    # Hard cap as a backstop: evict the soonest-to-expire entries if still oversized.
+    if len(_response_cache) >= _RESPONSE_CACHE_MAX_ENTRIES:
+        for k in sorted(_response_cache, key=lambda k: _response_cache[k][0])[
+            : len(_response_cache) - _RESPONSE_CACHE_MAX_ENTRIES + 1
+        ]:
+            _response_cache.pop(k, None)
+    _response_cache[key] = (now + settings.response_cache_seconds, body, media_type)
 
 
 @app.get('/healthz')
