@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sqlite3
+import threading
 import time
 from pathlib import Path
 from typing import Any, Iterable
@@ -50,6 +51,34 @@ def connect(db_path: Path) -> sqlite3.Connection:
     conn = sqlite3.connect(str(db_path), timeout=30, isolation_level=None, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.executescript(SCHEMA)
+    return conn
+
+
+_local = threading.local()
+
+
+def init_schema(db_path: Path) -> None:
+    """Create the schema once at startup (idempotent)."""
+    connect(db_path).close()
+
+
+def reader(db_path: Path) -> sqlite3.Connection:
+    """Return a per-thread read-only connection.
+
+    A single sqlite3.Connection is NOT safe to share across threads
+    (check_same_thread=False only silences the guard); concurrent use
+    corrupts cursor state. Each thread gets its own connection instead.
+    WAL lets any number of these read concurrently with the collector's
+    writes. Connections are cached per thread and reused across requests.
+    """
+    conn = getattr(_local, 'conn', None)
+    if conn is None:
+        conn = sqlite3.connect(str(db_path), timeout=30, isolation_level=None, check_same_thread=False)
+        conn.row_factory = sqlite3.Row
+        conn.execute('PRAGMA busy_timeout=5000')
+        conn.execute('PRAGMA temp_store=MEMORY')
+        conn.execute('PRAGMA query_only=ON')
+        _local.conn = conn
     return conn
 
 
