@@ -34,7 +34,7 @@ class Settings:
     poll_interval_seconds: float = _float('WSPR_POLL_INTERVAL_SECONDS', 20.0)
     cycle_sleep_seconds: float = _float('WSPR_CYCLE_SLEEP_SECONDS', 10.0)
     upstream_timeout_seconds: float = _float('WSPR_UPSTREAM_TIMEOUT_SECONDS', 25.0)
-    retention_hours: int = _int('WSPR_RETENTION_HOURS', 48)
+    retention_hours: float = _float('WSPR_RETENTION_HOURS', 24)
     prune_every_seconds: int = _int('WSPR_PRUNE_EVERY_SECONDS', 900)
     max_rows_per_band_poll: int = _int('WSPR_MAX_ROWS_PER_BAND_POLL', 100000)
     max_query_age_seconds: int = _int('WSPR_MAX_QUERY_AGE_SECONDS', 86400)

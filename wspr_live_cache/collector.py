@@ -201,7 +201,7 @@ async def run_collector() -> None:
                     inserted = insert_spots(db_conn, db_rows)
                     prune(
                         db_conn,
-                        retention_hours=int(getattr(settings, "retention_hours", 48)),
+                        retention_hours=float(getattr(settings, "retention_hours", 24)),
                     )
                     log.info(
                         "band=%sm code=%s rows=%s inserted=%s elapsed=%.1fs",

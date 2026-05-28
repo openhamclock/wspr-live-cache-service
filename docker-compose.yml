@@ -24,10 +24,10 @@ services:
       WSPR_DB_PATH: /data/wspr-live-cache.sqlite3
       WSPR_LIVE_URL: https://db1.wspr.live/
       WSPR_BANDS: "160,80,60,40,30,20,17,15,12,10,6,4,2"
+      WSPR_RETENTION_HOURS: "24"
       WSPR_POLL_LOOKBACK_MINUTES: 10
       WSPR_POLL_INTERVAL_SECONDS: 20
       WSPR_CYCLE_SLEEP_SECONDS: 10
-      WSPR_RETENTION_HOURS: 48
       WSPR_MAX_ROWS_PER_BAND_POLL: 100000
       LOG_LEVEL: INFO
     volumes:
