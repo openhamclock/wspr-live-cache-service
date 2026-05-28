@@ -106,15 +106,27 @@ def hamclock_fetch(
 
 
 def render_hamclock(rows) -> str:
-    # CSV-ish format kept intentionally simple for shim compatibility.
-    # Fields: epoch,tx_call,tx_grid,rx_call,rx_grid,freq_hz,snr,band,power,drift,distance,azimuth
-    lines = ['# epoch,tx_call,tx_grid,rx_call,rx_grid,freq_hz,snr,band,power,drift,distance,azimuth']
+    # HamClock (pskreporter.cpp) parses every line with a single sscanf:
+    #   "%ld,%6[^,],%63[^,],%6[^,],%63[^,],%7[^,],%ld,%f"
+    # i.e. EXACTLY these 8 fields, in this order:
+    #   epoch, tx_grid, tx_call, rx_grid, rx_call, mode, freq_hz, snr
+    # Any line that doesn't yield all 8 fields makes HamClock abort the ENTIRE
+    # response (it does `goto out`, not skip-this-line), so we must be strict:
+    #   - no header/comment line (it would fail parsing and zero everything out)
+    #   - never emit an empty grid (an empty field can't match %6[^,])
+    #   - cap grids at 6 chars (a longer grid desyncs the comma alignment)
+    #   - mode must be a non-empty token; "WSPR" is the correct value here
+    lines = []
     for r in rows:
+        tx_grid = (r['tx_grid'] or '')[:6]
+        rx_grid = (r['rx_grid'] or '')[:6]
+        if not tx_grid or not rx_grid:
+            continue
         lines.append(','.join(_csv(v) for v in [
-            r['time_epoch'], r['tx_call'], r['tx_grid'], r['rx_call'], r['rx_grid'],
-            r['frequency_hz'], r['snr'], r['band'], r['power_dbm'], r['drift'], r['distance_km'], r['azimuth']
+            r['time_epoch'], tx_grid, r['tx_call'], rx_grid, r['rx_call'],
+            'WSPR', r['frequency_hz'], r['snr'],
         ]))
-    return '\n'.join(lines) + '\n'
+    return '\n'.join(lines) + '\n' if lines else ''
 
 
 def _csv(v) -> str:
