@@ -1,7 +1,6 @@
 services:
   wspr-live-cache:
-    build: .
-    image: openhamclock/wspr-live-cache:local
+    image: komacke/wspr-live-cache:latest
     container_name: wspr-live-cache
     restart: unless-stopped
     environment:
@@ -17,8 +16,7 @@ services:
         source: ohb-htdocs
         target: /data
         volume:
-          subpath: pskr
-    command: ["python", "-m", "wspr_live_cache"]
+          subpath: wspr
 
 networks:
   ohb:
