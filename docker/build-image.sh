@@ -1,5 +1,5 @@
 #!/bin/bash
-# build voacap-server images for local and Docker Hub
+# build wspr-live-cache images for local and Docker Hub
 #
 # Copyright (C) 2026 Open HamClock Backend (OHB) Contributors
 # License: GNU Affero General Public License v3.0 (AGPLv3)

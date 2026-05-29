@@ -80,3 +80,9 @@ FORMAT CSVWithNames
 ```
 
 The API answers from SQLite only. Headers include `X-Upstream-Queries: 0` to make that behavior explicit.
+
+## License
+
+Copyright (C) 2026 Open HamClock Backend (OHB) Contributors.
+This project is licensed under the GNU Affero General Public License v3.0 (AGPLv3).
+See the LICENSE file or <https://www.gnu.org/licenses/agpl-3.0.html> for details.
