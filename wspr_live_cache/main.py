@@ -1,3 +1,8 @@
+# Copyright (C) 2026 Open HamClock Backend (OHB) Contributors
+# License: GNU Affero General Public License v3.0 (AGPLv3)
+# See LICENSE file or <https://www.gnu.org/licenses/agpl-3.0.html>
+#
+
 from __future__ import annotations
 
 import threading
@@ -8,10 +13,9 @@ from fastapi import FastAPI, Query, Response
 from fastapi.responses import PlainTextResponse
 
 from .config import settings
-from .db import init_schema, reader, query_spots, stats
+from .db import reader, query_spots, stats
 
 app = FastAPI(title='Open HamClock WSPR Live Cache', version='1.0.0')
-init_schema(settings.db_path)
 _response_cache: dict[str, tuple[float, str, str]] = {}
 _RESPONSE_CACHE_MAX_ENTRIES = 2000
 _cache_lock = threading.Lock()

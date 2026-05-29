@@ -6,10 +6,6 @@
 #
 FROM debian:13.4-slim
 
-ARG GIT_VERSION
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
-
 WORKDIR /app
 
 COPY docker/package-list.txt /app/
@@ -26,6 +22,9 @@ RUN mkdir -p /data && \
     chown wspr:wspr /data && \
     echo $GIT_VERSION > /app/git.version
 
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+ARG GIT_VERSION
 USER wspr
 
 EXPOSE 5001

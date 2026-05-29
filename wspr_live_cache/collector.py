@@ -1,3 +1,8 @@
+# Copyright (C) 2026 Open HamClock Backend (OHB) Contributors
+# License: GNU Affero General Public License v3.0 (AGPLv3)
+# See LICENSE file or <https://www.gnu.org/licenses/agpl-3.0.html>
+#
+
 from __future__ import annotations
 
 import asyncio
@@ -136,15 +141,15 @@ async def fetch_band(
 ) -> list[dict[str, Any]]:
     sql = _sql_for_band(
         band_code=band_code,
-        lookback_minutes=int(getattr(settings, "lookback_minutes", 10)),
-        limit=int(getattr(settings, "query_limit", 100000)),
+        lookback_minutes=settings.poll_lookback_minutes,
+        limit=settings.max_rows_per_band_poll,
     )
 
     # WSPR Live currently requires GET ?query=...; POST returns 403.
     resp = await client.get(
         str(settings.wspr_live_url),
         params={"query": sql},
-        timeout=float(getattr(settings, "upstream_timeout_seconds", 60)),
+        timeout=settings.upstream_timeout_seconds,
     )
     resp.raise_for_status()
     rows = _parse_csv_with_names(resp.text)
@@ -183,8 +188,8 @@ async def run_collector(db_conn: sqlite3.Connection | None = None) -> None:
         settings.db_path,
         settings.wspr_live_url,
         ",".join(f"{label}m={code}" for label, code in bands),
-        getattr(settings, "lookback_minutes", 10),
-        getattr(settings, "poll_interval_seconds", 20),
+        settings.poll_lookback_minutes,
+        settings.poll_interval_seconds,
     )
 
     if not bands:
@@ -201,7 +206,7 @@ async def run_collector(db_conn: sqlite3.Connection | None = None) -> None:
                     inserted = insert_spots(db_conn, db_rows)
                     prune(
                         db_conn,
-                        retention_hours=int(getattr(settings, "retention_hours", 48)),
+                        retention_hours=int(settings.retention_hours),
                     )
                     log.info(
                         "band=%sm code=%s rows=%s inserted=%s elapsed=%.1fs",
@@ -219,8 +224,8 @@ async def run_collector(db_conn: sqlite3.Connection | None = None) -> None:
                         exc,
                     )
 
-                interval = float(getattr(settings, "poll_interval_seconds", 20))
-                jitter = float(getattr(settings, "poll_jitter_seconds", 0))
+                interval = settings.poll_interval_seconds
+                jitter = settings.poll_jitter_seconds
                 sleep_for = interval + (random.uniform(0, jitter) if jitter > 0 else 0)
                 await asyncio.sleep(sleep_for)
 
