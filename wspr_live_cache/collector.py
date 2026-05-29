@@ -8,10 +8,11 @@ import random
 import time
 from typing import Any
 
+import sqlite3
 import httpx
 
-from .config import Settings
-from .db import connect, insert_spots, prune, set_state
+from .config import settings as global_settings, Settings
+from .db import insert_spots, prune, connect
 
 log = logging.getLogger("wspr_live_cache.collector")
 logging.basicConfig(
@@ -135,15 +136,15 @@ async def fetch_band(
 ) -> list[dict[str, Any]]:
     sql = _sql_for_band(
         band_code=band_code,
-        lookback_minutes=settings.poll_lookback_minutes,
-        limit=settings.max_rows_per_band_poll,
+        lookback_minutes=int(getattr(settings, "lookback_minutes", 10)),
+        limit=int(getattr(settings, "query_limit", 100000)),
     )
 
     # WSPR Live currently requires GET ?query=...; POST returns 403.
     resp = await client.get(
         str(settings.wspr_live_url),
         params={"query": sql},
-        timeout=settings.upstream_timeout_seconds,
+        timeout=float(getattr(settings, "upstream_timeout_seconds", 60)),
     )
     resp.raise_for_status()
     rows = _parse_csv_with_names(resp.text)
@@ -173,25 +174,23 @@ async def fetch_band(
     return normalized
 
 
-async def run_collector() -> None:
-    settings = Settings()
-    db_conn = connect(settings.db_path)
+async def run_collector(db_conn: sqlite3.Connection | None = None) -> None:
+    settings = global_settings
+    db_conn = db_conn or connect(settings.db_path)
     bands = _configured_bands(settings)
-
     log.info(
         "collector starting db_path=%s upstream=%s bands=%s lookback=%sm interval=%ss",
         settings.db_path,
         settings.wspr_live_url,
         ",".join(f"{label}m={code}" for label, code in bands),
-        settings.poll_lookback_minutes,
-        settings.poll_interval_seconds,
+        getattr(settings, "lookback_minutes", 10),
+        getattr(settings, "poll_interval_seconds", 20),
     )
 
     if not bands:
         raise RuntimeError("no valid bands configured")
 
     headers = {"User-Agent": "openhamclock-wspr-live-cache/0.1"}
-    last_prune = 0.0
     async with httpx.AsyncClient(headers=headers, follow_redirects=True) as client:
         while True:
             for band_label, band_code in bands:
@@ -200,11 +199,10 @@ async def run_collector() -> None:
                     rows = await fetch_band(client, settings, band_label, band_code)
                     db_rows = [_normalize_for_db(row, band_label) for row in rows]
                     inserted = insert_spots(db_conn, db_rows)
-                    set_state(db_conn, f"last_poll:{band_label}m", str(int(time.time())))
-                    now = time.monotonic()
-                    if now - last_prune >= settings.prune_every_seconds:
-                        prune(db_conn, retention_hours=settings.retention_hours)
-                        last_prune = now
+                    prune(
+                        db_conn,
+                        retention_hours=int(getattr(settings, "retention_hours", 48)),
+                    )
                     log.info(
                         "band=%sm code=%s rows=%s inserted=%s elapsed=%.1fs",
                         band_label,
@@ -221,13 +219,10 @@ async def run_collector() -> None:
                         exc,
                     )
 
-                interval = settings.poll_interval_seconds
-                jitter = settings.poll_jitter_seconds
+                interval = float(getattr(settings, "poll_interval_seconds", 20))
+                jitter = float(getattr(settings, "poll_jitter_seconds", 0))
                 sleep_for = interval + (random.uniform(0, jitter) if jitter > 0 else 0)
                 await asyncio.sleep(sleep_for)
-
-            # Delay after a full band cycle.
-            await asyncio.sleep(settings.cycle_sleep_seconds)
 
 
 def main() -> None:

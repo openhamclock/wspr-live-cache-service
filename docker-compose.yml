@@ -1,38 +1,29 @@
 services:
-  wspr-cache-api:
+  wspr-live-cache:
     build: .
-    image: openhamclock/wspr-live-cache-api:local
-    container_name: wspr-cache-api
+    image: openhamclock/wspr-live-cache:local
+    container_name: wspr-live-cache
     restart: unless-stopped
     environment:
       WSPR_DB_PATH: /data/wspr-live-cache.sqlite3
       WSPR_MAX_QUERY_AGE_SECONDS: 86400
       WSPR_RESPONSE_CACHE_SECONDS: 45
       WSPR_API_UPSTREAM_DISABLED: "true"
+      WSPR_RETENTION_HOURS: "7"
+    networks:
+      - ohb
     volumes:
-      - wspr-cache-data:/data
-    ports:
-      - "8081:8081"
+      - type: volume
+        source: ohb-htdocs
+        target: /data
+        volume:
+          subpath: pskr
     command: ["python", "-m", "wspr_live_cache"]
 
-  wspr-cache-collector:
-    build: .
-    image: openhamclock/wspr-live-cache-collector:local
-    container_name: wspr-cache-collector
-    restart: unless-stopped
-    environment:
-      WSPR_DB_PATH: /data/wspr-live-cache.sqlite3
-      WSPR_LIVE_URL: https://db1.wspr.live/
-      WSPR_BANDS: "160,80,60,40,30,20,17,15,12,10,6,4,2"
-      WSPR_RETENTION_HOURS: "24"
-      WSPR_POLL_LOOKBACK_MINUTES: 10
-      WSPR_POLL_INTERVAL_SECONDS: 20
-      WSPR_CYCLE_SLEEP_SECONDS: 10
-      WSPR_MAX_ROWS_PER_BAND_POLL: 100000
-      LOG_LEVEL: INFO
-    volumes:
-      - wspr-cache-data:/data
-    command: ["python", "-m", "wspr_live_cache", "collector"]
+networks:
+  ohb:
+    external: true
 
 volumes:
-  wspr-cache-data:
+  ohb-htdocs:
+    external: true

@@ -1,18 +1,41 @@
 from __future__ import annotations
 
+import asyncio
 import time
-from typing import Optional
+from contextlib import asynccontextmanager
+from typing import Optional, Any
 
 from fastapi import FastAPI, Query, Response
 from fastapi.responses import PlainTextResponse
 
+from .collector import run_collector
 from .config import settings
 from .db import connect, query_spots, stats
 
-app = FastAPI(title='Open HamClock WSPR Live Cache', version='1.0.0')
 _conn = connect(settings.db_path)
 _response_cache: dict[str, tuple[float, str, str]] = {}
 _RESPONSE_CACHE_MAX_ENTRIES = 2000
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Start the background collector task, sharing our DB connection
+    collector_task = asyncio.create_task(run_collector(_conn))
+    yield
+    # Clean up the task on shutdown gracefully
+    collector_task.cancel()
+    try:
+        await collector_task
+    except asyncio.CancelledError:
+        pass
+    title='Open HamClock WSPR Live Cache',
+    version='1.0.0',
+    lifespan=lifespan
+
+app = FastAPI(
+    title='Open HamClock WSPR Live Cache',
+    version='1.0.0',
+    lifespan=lifespan
+)
 
 
 def clamp_maxage(maxage: Optional[int]) -> int:
