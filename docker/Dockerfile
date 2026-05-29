@@ -18,15 +18,20 @@ RUN apt update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+RUN groupadd --gid 1002 wspr && \
+    useradd  --uid 1002 --gid wspr --no-create-home --shell /sbin/nologin wspr
 
 COPY wspr_live_cache /app/wspr_live_cache
 RUN mkdir -p /data && \
+    chown wspr:wspr /data && \
     echo $GIT_VERSION > /app/git.version
 
-VOLUME ["/data"]
-EXPOSE 8081
+USER wspr
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD curl -s http://localhost:8081/healthz || exit 1
+EXPOSE 5001
+VOLUME ["/data"]
+
+HEALTHCHECK --interval=60s --timeout=10s --start-period=15s --retries=3 \
+    CMD curl -s http://localhost:5001/healthz || exit 1
 
 CMD ["python3", "-m", "wspr_live_cache"]

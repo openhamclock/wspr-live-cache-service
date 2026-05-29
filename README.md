@@ -29,9 +29,9 @@ The API container never performs upstream queries. Only the collector talks to W
 cd docker
 ./build-image.sh
 docker compose up -d
-curl http://localhost:8081/healthz
-curl 'http://localhost:8081/stats'
-curl 'http://localhost:8081/ham/HamClock/fetchWSPR.pl?ofgrid=EL98&maxage=900'
+curl http://localhost:5001/healthz
+curl 'http://localhost:5001/stats'
+curl 'http://localhost:5001/ham/HamClock/fetchWSPR.pl?ofgrid=EL98&maxage=900'
 ```
 
 ## OHB shim
@@ -39,13 +39,13 @@ curl 'http://localhost:8081/ham/HamClock/fetchWSPR.pl?ofgrid=EL98&maxage=900'
 Install `fetchWSPR.pl` as the HamClock-facing CGI in OHB and set:
 
 ```bash
-WSPR_CACHE_URL=http://wspr-cache-api:8081/ham/HamClock/fetchWSPR.pl
+WSPR_CACHE_URL=http://wspr-cache-api:5001/ham/HamClock/fetchWSPR.pl
 ```
 
 If OHB is not in the same Docker network, expose the cache API on the host and use:
 
 ```bash
-WSPR_CACHE_URL=http://127.0.0.1:8081/ham/HamClock/fetchWSPR.pl
+WSPR_CACHE_URL=http://127.0.0.1:5001/ham/HamClock/fetchWSPR.pl
 ```
 
 The shim deliberately has **no fallback** to WSPR Live. If the cache is down, it returns an empty/comment response instead of hammering upstream.
