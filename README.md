@@ -26,7 +26,9 @@ The API container never performs upstream queries. Only the collector talks to W
 ## Run
 
 ```bash
-docker compose up --build -d
+cd docker
+./build-image.sh
+docker compose up -d
 curl http://localhost:8081/healthz
 curl 'http://localhost:8081/stats'
 curl 'http://localhost:8081/ham/HamClock/fetchWSPR.pl?ofgrid=EL98&maxage=900'

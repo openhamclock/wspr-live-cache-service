@@ -1,0 +1,27 @@
+services:
+  wspr-live-cache:
+    image: komacke/wspr-live-cache:latest
+    container_name: wspr-live-cache
+    restart: unless-stopped
+    environment:
+      WSPR_DB_PATH: /data/wspr-live-cache.sqlite3
+      WSPR_MAX_QUERY_AGE_SECONDS: 86400
+      WSPR_RESPONSE_CACHE_SECONDS: 45
+      WSPR_API_UPSTREAM_DISABLED: "true"
+      WSPR_RETENTION_HOURS: "7"
+    networks:
+      - ohb
+    volumes:
+      - type: volume
+        source: ohb-htdocs
+        target: /data
+        volume:
+          subpath: wspr
+
+networks:
+  ohb:
+    external: true
+
+volumes:
+  ohb-htdocs:
+    external: true
