@@ -41,6 +41,8 @@ class Settings:
     max_query_age_seconds: int = _int('WSPR_MAX_QUERY_AGE_SECONDS', 86400)
     default_query_age_seconds: int = _int('WSPR_DEFAULT_QUERY_AGE_SECONDS', 900)
     response_cache_seconds: int = _int('WSPR_RESPONSE_CACHE_SECONDS', 45)
+    stats_cache_seconds: float = _float('WSPR_STATS_CACHE_SECONDS', 5.0)
+    workers: int = _int('WSPR_WORKERS', 4)
     # important safety switch: API never queries upstream. Only collector does.
     api_upstream_disabled: bool = os.getenv('WSPR_API_UPSTREAM_DISABLED', 'true').lower() not in ('0','false','no')
 
