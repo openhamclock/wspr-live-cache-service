@@ -7,7 +7,7 @@ use URI::Escape qw(uri_escape);
 
 # Thin OHB CGI shim. This must never talk to wspr.live.
 # It only forwards HamClock-compatible params to the local cache container.
-my $base = $ENV{WSPR_CACHE_URL} || 'http://wspr-cache-api:8081/ham/HamClock/fetchWSPR.pl';
+my $base = $ENV{WSPR_CACHE_URL} || 'http://wspr-cache-api:5001/ham/HamClock/fetchWSPR.pl';
 my $q = CGI->new;
 
 my @allowed = qw(ofcall bycall ofgrid bygrid band maxage);

@@ -8,4 +8,4 @@ if len(sys.argv) > 1 and sys.argv[1] == 'collector':
 else:
     import uvicorn
     from .config import settings
-    uvicorn.run('wspr_live_cache.main:app', host='0.0.0.0', port=8081, workers=settings.workers)
+    uvicorn.run('wspr_live_cache.main:app', host='0.0.0.0', port=5001, workers=settings.workers)

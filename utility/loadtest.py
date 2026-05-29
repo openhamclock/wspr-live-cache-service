@@ -22,7 +22,7 @@ def rand_grid():
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--url", default="http://localhost:8081/ham/HamClock/fetchWSPR.pl")
+    ap.add_argument("--url", default="http://localhost:5001/ham/HamClock/fetchWSPR.pl")
     ap.add_argument("--clients", type=int, default=200, help="concurrent virtual clients / threads")
     ap.add_argument("--interval", type=float, default=90.0, help="realistic mode: seconds between a client's polls")
     ap.add_argument("--duration", type=float, default=30.0, help="test length in seconds")
