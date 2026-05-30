@@ -31,6 +31,6 @@ EXPOSE 5001
 VOLUME ["/data"]
 
 HEALTHCHECK --interval=60s --timeout=10s --start-period=15s --retries=3 \
-    CMD curl -s http://localhost:5001/healthz || exit 1
+    CMD python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:5001/healthz').read()" || exit 1
 
 CMD ["python3", "-m", "wspr_live_cache"]
