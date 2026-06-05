@@ -141,7 +141,7 @@ def query_spots(
     bygrid: str | None = None,
     band: str | None = None,
     maxage: int = 900,
-    limit: int = 5000,
+    limit: int = -1,
 ) -> list[sqlite3.Row]:
     cutoff = int(time.time()) - maxage
     where = ['time_epoch >= ?']

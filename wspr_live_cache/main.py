@@ -105,7 +105,7 @@ def api_spots(
     bygrid: Optional[str] = None,
     band: Optional[str] = None,
     maxage: Optional[int] = Query(default=None),
-    limit: int = Query(default=5000, le=50000),
+    limit: int = Query(default=-1),
 ):
     age = clamp_maxage(maxage)
     rows = query_spots(reader(settings.db_path), ofcall=ofcall, bycall=bycall, ofgrid=ofgrid, bygrid=bygrid, band=band, maxage=age, limit=limit)
