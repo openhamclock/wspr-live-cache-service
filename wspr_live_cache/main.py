@@ -139,7 +139,7 @@ def hamclock_fetch(
     if cached:
         body, media_type = cached
         return Response(content=body, media_type=media_type, headers={'X-WSPR-Cache': 'HIT', 'X-Upstream-Queries': '0'})
-    rows = query_spots(reader(settings.db_path), ofcall=ofcall, bycall=bycall, ofgrid=ofgrid, bygrid=bygrid, band=band, maxage=age, limit=20000)
+    rows = query_spots(reader(settings.db_path), ofcall=ofcall, bycall=bycall, ofgrid=ofgrid, bygrid=bygrid, band=band, maxage=age, limit=200000)
     body = render_hamclock(rows)
     put_cached(key, body, 'text/plain')
     return Response(content=body, media_type='text/plain', headers={'X-WSPR-Cache': 'MISS', 'X-Upstream-Queries': '0'})
