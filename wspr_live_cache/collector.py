@@ -26,8 +26,13 @@ logging.basicConfig(
 )
 
 # WSPR Live stores band as the MHz-ish band bucket, not the meter label.
-# Examples: 20m => band=14, 40m => band=7.
+# Examples: 20m => band=14, 40m => band=7. The LF/MF bands break that pattern
+# since their dial frequencies are below 1 MHz, so wspr.live gives them their
+# own out-of-band codes instead of floor(MHz): 2200m => -1 (LF), 630m => 0 (MF).
+# See https://wspr.live/ (band column docs).
 BAND_TO_WSPR_LIVE_CODE: dict[str, int] = {
+    "2200": -1,
+    "630": 0,
     "160": 1,
     "80": 3,
     "60": 5,

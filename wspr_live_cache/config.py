@@ -34,7 +34,7 @@ def _float(name: str, default: float) -> float:
 class Settings:
     db_path: Path = Path(os.getenv('WSPR_DB_PATH', '/data/wspr-live-cache.sqlite3'))
     wspr_live_url: str = os.getenv('WSPR_LIVE_URL', 'https://db1.wspr.live/').rstrip('/') + '/'
-    bands: str = os.getenv('WSPR_BANDS', "160,80,60,40,30,20,17,15,12,10,6,4,2")
+    bands: str = os.getenv('WSPR_BANDS', "630,160,80,60,40,30,20,17,15,12,10,6,4,2")
     poll_lookback_minutes: int = _int('WSPR_POLL_LOOKBACK_MINUTES', 10)
     poll_interval_seconds: float = _float('WSPR_POLL_INTERVAL_SECONDS', 20.0)
     poll_jitter_seconds: float = _float('WSPR_POLL_JITTER_SECONDS', 0.0)
