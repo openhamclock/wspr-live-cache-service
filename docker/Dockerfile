@@ -17,6 +17,8 @@ RUN apt update && \
 RUN groupadd --gid 1002 wspr && \
     useradd  --uid 1002 --gid wspr --no-create-home --shell /sbin/nologin wspr
 
+ARG GIT_VERSION
+
 COPY wspr_live_cache /app/wspr_live_cache
 RUN mkdir -p /data && \
     chown wspr:wspr /data && \
@@ -24,7 +26,7 @@ RUN mkdir -p /data && \
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
-ARG GIT_VERSION
+
 USER wspr
 
 EXPOSE 5001
