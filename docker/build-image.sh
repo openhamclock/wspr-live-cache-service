@@ -9,12 +9,18 @@
 # Variables to set
 IMAGE_BASE=komacke/wspr-live-cache
 
+# Define color variables
+RED=$(tput bold; tput setaf 1 2>/dev/null || true)
+YELLOW=$(tput setaf 3 2>/dev/null || true)
+GREEN=$(tput setaf 2 2>/dev/null || true)
+NC=$(tput sgr0 2>/dev/null || true) # Reset color
+
 if [ -n "$TAG" ]; then
     GIT_VERSION=$TAG
 else
     TAG=$(git describe --exact-match --tags 2>/dev/null)
     if [ $? -ne 0 ]; then
-        echo "NOTE: Not currently on a tag. Using 'edge'."
+        echo "${RED}NOTE${NC}: Not currently on a tag. Using 'edge'."
         TAG=edge
         GIT_VERSION=$(git rev-parse --short HEAD)
     else
@@ -102,13 +108,13 @@ warn_image_tag() {
             docker manifest inspect $IMAGE >/dev/null
             if [ $? -eq 0 ]; then
                 echo
-                echo "WARNING: the multiplatform docker image for '$IMAGE' already exists in Docker Hub. Please"
+                echo "${RED}WARNING${NC}: the multiplatform docker image for '$IMAGE' already exists in Docker Hub. Please"
                 echo "         remove it if you want to rebuild."
                 exit 2
             fi
         elif docker image list --format '{{.Repository}}:{{.Tag}}' | grep -qs $IMAGE; then
             echo
-            echo "WARNING: the docker image for '$IMAGE' already exists. Please remove it if you want to rebuild."
+            echo "${RED}WARNING${NC}: the docker image for '$IMAGE' already exists. Please remove it if you want to rebuild."
             exit 2
         fi
     fi
@@ -120,14 +126,18 @@ warn_local_edits() {
     LOCAL_EDITS=$?
 
     if [ $LOCAL_EDITS -ne 0 ]; then
+        if [ "$FORCE" == "true" ] || [ "$CI" == "true" ]; then
+            echo "${YELLOW}WARNING${NC}: Local edits detected, but proceeding because CI or FORCE is set."
+            return 0
+        fi
         if [ $MULTI_PLATFORM == true ]; then
             echo
-            echo "ERROR: There are local edits. stash or reset them before pushing"
+            echo "${RED}ERROR${NC}: There are local edits. stash or reset them before pushing"
             echo "       images to Docker Hub."
             exit 3
         else
             echo
-            echo "WARNING: there are local edits. If you didn't intend that, stash"
+            echo "${RED}WARNING${NC}: there are local edits. If you didn't intend that, stash"
             echo "         them and build again."
         fi
     fi
