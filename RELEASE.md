@@ -84,3 +84,22 @@ The Docker build job requires the following GitHub repository secrets:
 |---|---|
 | `DOCKERHUB_USERNAME` | Docker Hub username (e.g., `komacke`) |
 | `DOCKERHUB_TOKEN` | Docker Hub Personal Access Token (PAT) with write permissions |
+
+---
+
+## 6. Verified Commits & Tags (SSH Signing Keys)
+
+If your local git environment is configured to sign commits or tags with SSH (`commit.gpgsign=true` / `tag.gpgsign=true`), GitHub requires that your public key be registered specifically as a **Signing Key** (rather than only an Authentication Key):
+
+1. Check your public key:
+   ```bash
+   cat ~/.ssh/git-signing.pub
+   ```
+2. Go to **GitHub Settings -> [SSH and GPG keys](https://github.com/settings/keys)**.
+3. Click **New SSH Key**.
+4. In the **Key type** dropdown, select **Signing Key**.
+5. Paste your public key and save.
+
+*(Alternatively, run `gh auth refresh -h github.com -s admin:ssh_signing_key` and then `gh ssh-key add ~/.ssh/git-signing.pub --type signing`)*.
+
+Once added as a signing key, GitHub will mark your releases, tags, and commits with the green **Verified** badge.

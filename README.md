@@ -107,6 +107,10 @@ FORMAT CSVWithNames
 
 The API answers from SQLite only. Headers include `X-Upstream-Queries: 0` to make that behavior explicit.
 
+## Releases & Docker Builds
+
+For instructions on building local images, setting up SSH signing keys, and triggering releases via GitHub Actions, see [RELEASE.md](RELEASE.md).
+
 ## License
 
 Copyright (C) 2026 Open HamClock Backend (OHB) Contributors.
