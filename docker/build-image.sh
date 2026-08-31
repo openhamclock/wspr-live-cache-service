@@ -9,14 +9,17 @@
 # Variables to set
 IMAGE_BASE=komacke/wspr-live-cache
 
-# Don't set anything past here
-TAG=$(git describe --exact-match --tags 2>/dev/null)
-if [ $? -ne 0 ]; then
-    echo "NOTE: Not currently on a tag. Using 'edge'."
-    TAG=edge
-    GIT_VERSION=$(git rev-parse --short HEAD)
-else
+if [ -n "$TAG" ]; then
     GIT_VERSION=$TAG
+else
+    TAG=$(git describe --exact-match --tags 2>/dev/null)
+    if [ $? -ne 0 ]; then
+        echo "NOTE: Not currently on a tag. Using 'edge'."
+        TAG=edge
+        GIT_VERSION=$(git rev-parse --short HEAD)
+    else
+        GIT_VERSION=$TAG
+    fi
 fi
 
 IMAGE=$IMAGE_BASE:$TAG
@@ -54,16 +57,16 @@ main() {
         usage
     fi
 
-    while getopts ":p:cmh" opt; do
+    while getopts ":hmn" opt; do
         case $opt in
+            h)
+                usage
+                ;;
             m)
                 MULTI_PLATFORM=true
                 ;;
             n)
                 NOCACHE=true
-                ;;
-            h)
-                usage
                 ;;
             \?) # Handle invalid options
                 echo "Invalid option: -$OPTARG" >&2
@@ -75,6 +78,13 @@ main() {
                 ;;
         esac
     done
+    shift $((OPTIND - 1))
+
+    if [[ -n "$1" ]]; then
+        echo
+        echo "Invalid argument: $1"
+        exit 1
+    fi
 
     do_all
     build_done_message
@@ -132,12 +142,12 @@ build_image() {
     echo
     echo "Building image for '$IMAGE_BASE:$TAG'"
     pushd "$HERE/.." >/dev/null
-    if [ $MULTI_PLATFORM == true ]; then
-        # only use latest on stable versions
-        if [[ $TAG =~ ^[0-9]{1,2}\.[0-9]{1,3}$ ]]; then
-            TAG_LATEST="-t $IMAGE_BASE:latest"
-        fi
+    # only use latest on stable versions
+    if [[ $TAG =~ ^[0-9]{1,2}\.[0-9]{1,3}$ ]]; then
+        TAG_LATEST="-t $IMAGE_BASE:latest"
+    fi
 
+    if [ $MULTI_PLATFORM == true ]; then
         docker buildx build \
             $NOCACHE_ARG \
             --pull \
@@ -154,6 +164,7 @@ build_image() {
             --pull \
             --build-arg GIT_VERSION=${GIT_VERSION} \
             -t $IMAGE \
+            $TAG_LATEST \
             -f docker/Dockerfile \
             .
     fi
