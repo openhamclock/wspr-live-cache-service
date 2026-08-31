@@ -55,7 +55,7 @@ The shim deliberately has **no fallback** to WSPR Live. If the cache is down, it
 | Variable | Default | Meaning |
 |---|---:|---|
 | `WSPR_LIVE_URL` | `https://db1.wspr.live/` | ClickHouse HTTP endpoint |
-| `WSPR_BANDS` | `160,80,60,40,30,20,17,15,12,10,6,4,2` | Rotating band list |
+| `WSPR_BANDS` | `630,160,80,60,40,30,20,17,15,12,10,6,4,2` | Rotating band list (`2200` also supported, off by default) |
 | `WSPR_POLL_LOOKBACK_MINUTES` | `10` | Overlap window per band poll |
 | `WSPR_POLL_INTERVAL_SECONDS` | `20` | Delay between band polls |
 | `WSPR_CYCLE_SLEEP_SECONDS` | `10` | Delay after a full band cycle |
