@@ -12,6 +12,7 @@ from typing import Optional
 from fastapi import FastAPI, Query, Response
 from fastapi.responses import PlainTextResponse
 
+from .bands import WSPR_BANDS, find_band
 from .config import settings
 from .db import reader, query_spots, stats
 
@@ -97,6 +98,18 @@ def get_stats():
     return s
 
 
+@app.get('/api/wspr/bands')
+def get_bands():
+    return [
+        {
+            'band': b.band,
+            'frequency': b.frequency,
+            'display': b.display,
+        }
+        for b in WSPR_BANDS
+    ]
+
+
 @app.get('/api/wspr/spots')
 def api_spots(
     ofcall: Optional[str] = None,
@@ -126,12 +139,13 @@ def hamclock_fetch(
     # 4 chars, everything upper-cased) so nearby clients (e.g. CM87VT and CM87XI,
     # which run the identical CM87 query) share one cached render instead of
     # each getting a distinct key.
+    b = find_band(band) if band else None
     params = {
         'ofcall': ofcall.upper() if ofcall else None,
         'bycall': bycall.upper() if bycall else None,
         'ofgrid': ofgrid[:4].upper() if ofgrid else None,
         'bygrid': bygrid[:4].upper() if bygrid else None,
-        'band': band.upper().rstrip('M') if band else None,
+        'band': b.display if b else (band.upper().rstrip('M') if band else None),
         'maxage': age,
     }
     key = cache_key(params, 'hamclock')

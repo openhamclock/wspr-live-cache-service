@@ -16,6 +16,7 @@ from typing import Any
 import sqlite3
 import httpx
 
+from .bands import BAND_TO_WSPR_LIVE_CODE, DEFAULT_BANDS_STR, find_band
 from .config import settings as global_settings, Settings
 from .db import insert_spots, prune, connect
 
@@ -25,42 +26,19 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(name)s: %(message)s",
 )
 
-# WSPR Live stores band as the MHz-ish band bucket, not the meter label.
-# Examples: 20m => band=14, 40m => band=7. The LF/MF bands break that pattern
-# since their dial frequencies are below 1 MHz, so wspr.live gives them their
-# own out-of-band codes instead of floor(MHz): 2200m => -1 (LF), 630m => 0 (MF).
-# See https://wspr.live/ (band column docs).
-BAND_TO_WSPR_LIVE_CODE: dict[str, int] = {
-    "2200": -1,
-    "630": 0,
-    "160": 1,
-    "80": 3,
-    "60": 5,
-    "40": 7,
-    "30": 10,
-    "20": 14,
-    "17": 18,
-    "15": 21,
-    "12": 24,
-    "10": 28,
-    "6": 50,
-    "4": 70,
-    "2": 144,
-}
-
 
 def _configured_bands(settings: Settings) -> list[tuple[str, int]]:
-    raw = getattr(settings, "bands", None) or "160,80,60,40,30,20,17,15,12,10,6,4,2"
+    raw = getattr(settings, "bands", None) or DEFAULT_BANDS_STR
     out: list[tuple[str, int]] = []
     for item in str(raw).split(","):
-        label = item.strip().lower().removesuffix("m")
-        if not label:
+        item_str = item.strip()
+        if not item_str:
             continue
-        code = BAND_TO_WSPR_LIVE_CODE.get(label)
-        if code is None:
+        band_info = find_band(item_str)
+        if band_info is None:
             log.warning("ignoring unsupported band label=%r", item)
             continue
-        out.append((label, code))
+        out.append((band_info.display, band_info.band))
     return out
 
 

@@ -55,7 +55,7 @@ The shim deliberately has **no fallback** to WSPR Live. If the cache is down, it
 | Variable | Default | Meaning |
 |---|---:|---|
 | `WSPR_LIVE_URL` | `https://db1.wspr.live/` | ClickHouse HTTP endpoint |
-| `WSPR_BANDS` | `630,160,80,60,40,30,20,17,15,12,10,6,4,2` | Rotating band list (`2200` also supported, off by default) |
+| `WSPR_BANDS` | `LF,MF,160m,80m,60m,40m,30m,20m,17m,15m,12m,10m,6m,4m,2m,70cm,23cm` | Rotating band list (all supported bands) |
 | `WSPR_POLL_LOOKBACK_MINUTES` | `10` | Overlap window per band poll |
 | `WSPR_POLL_INTERVAL_SECONDS` | `20` | Delay between band polls |
 | `WSPR_CYCLE_SLEEP_SECONDS` | `10` | Delay after a full band cycle |
@@ -63,6 +63,32 @@ The shim deliberately has **no fallback** to WSPR Live. If the cache is down, it
 | `WSPR_MAX_QUERY_AGE_SECONDS` | `86400` | HamClock max query age cap |
 | `WSPR_RESPONSE_CACHE_SECONDS` | `45` | Short API response cache |
 | `WSPR_MAX_ROWS_PER_BAND_POLL` | `100000` | Safety cap per upstream query |
+
+## Supported Bands and Frequencies
+
+The service supports all 17 WSPR bands:
+
+| Band | Frequency (Hz) | Display |
+|---:|---:|---|
+| -1 | 136000 | LF |
+| 0 | 474200 | MF |
+| 1 | 1836600 | 160m |
+| 3 | 3568600 | 80m |
+| 5 | 5287200 | 60m |
+| 7 | 7038600 | 40m |
+| 10 | 10138700 | 30m |
+| 14 | 14095600 | 20m |
+| 18 | 18104600 | 17m |
+| 21 | 21094600 | 15m |
+| 24 | 24924600 | 12m |
+| 28 | 28124600 | 10m |
+| 50 | 50293000 | 6m |
+| 70 | 70091000 | 4m |
+| 144 | 144489000 | 2m |
+| 432 | 432300000 | 70cm |
+| 1296 | 1296500000 | 23cm |
+
+A JSON list of all supported bands is also available at `/api/wspr/bands`.
 
 ## Notes
 
@@ -73,7 +99,7 @@ SELECT time, band, tx_sign, tx_loc, rx_sign, rx_loc, frequency, snr, power,
        drift, distance, azimuth, version, code
 FROM wspr.rx
 WHERE time >= now() - INTERVAL 10 MINUTE
-  AND band = '20'
+  AND band = 14
 ORDER BY time DESC
 LIMIT 100000
 FORMAT CSVWithNames
