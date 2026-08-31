@@ -11,6 +11,8 @@ import time
 from pathlib import Path
 from typing import Any, Iterable
 
+from .bands import find_band
+
 SCHEMA = r'''
 PRAGMA journal_mode=WAL;
 PRAGMA synchronous=NORMAL;
@@ -93,8 +95,11 @@ def insert_spots(conn: sqlite3.Connection, spots: Iterable[dict[str, Any]]) -> i
     for s in spots:
         if not s.get('time_epoch') or not s.get('tx_call') or not s.get('rx_call'):
             continue
+        raw_band = s.get('band')
+        b = find_band(raw_band)
+        band_val = b.display if b else str(raw_band or '').upper().rstrip('M')
         rows.append((
-            int(s['time_epoch']), str(s.get('band') or '').upper().rstrip('M'),
+            int(s['time_epoch']), band_val,
             str(s['tx_call']).upper(), _grid(s.get('tx_grid')),
             str(s['rx_call']).upper(), _grid(s.get('rx_grid')),
             _int_or_none(s.get('frequency_hz')), _int_or_none(s.get('snr')),
@@ -159,8 +164,14 @@ def query_spots(
         where.append('substr(rx_grid,1,4) = ?')
         args.append(bygrid[:4].upper())
     if band:
-        where.append('band = ?')
-        args.append(band.upper().rstrip('M'))
+        b = find_band(band)
+        if b:
+            placeholders = ','.join('?' for _ in b.query_matches)
+            where.append(f'band IN ({placeholders})')
+            args.extend(b.query_matches)
+        else:
+            where.append('band = ?')
+            args.append(band.upper().rstrip('M'))
     args.append(limit)
     return list(conn.execute(f'''
         SELECT time_epoch, band, tx_call, tx_grid, rx_call, rx_grid, frequency_hz, snr,
