@@ -17,9 +17,10 @@ cd docker && ./build-image.sh
 ```
 
 - When not on a Git tag, the script automatically falls back to the `edge` tag and builds `komacke/wspr-live-cache:edge`.
-- **Options**:
+- **Options & Environment Variables**:
   - `-n`: Build with `--no-cache`.
   - `-m`: Multi-platform build (`linux/amd64`, `linux/arm64`) using Buildx and pushes to Docker Hub.
+  - `FORCE=true`: Bypass the uncommitted local edits check during local builds (GitHub Actions automatically bypasses this via `CI=true`).
 
 ---
 
