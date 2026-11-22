@@ -4,7 +4,7 @@
 # License: GNU Affero General Public License v3.0 (AGPLv3)
 # See LICENSE or <https://www.gnu.org/licenses/agpl-3.0.html>
 #
-FROM debian:13.4-slim
+FROM debian:13-slim
 
 WORKDIR /app
 
